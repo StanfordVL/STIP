@@ -30,7 +30,7 @@ for i, f_12 in enumerate(imgs_12):
     best_l2_distance = np.inf
     best_match = 0
     l2_distance_series = []
-    for j in range(max(0, last_matched_frame_20fps), last_matched_frame_20fps):
+    for j in range(max(0, last_matched_frame_20fps), last_matched_frame_20fps+20):
         f_20 = imgs_20[j]
         img_20 = cv2.imread(f_20)
         l2_distance = np.mean((img_20 - img_12)**2)
