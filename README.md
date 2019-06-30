@@ -40,9 +40,9 @@ Make any corrections only after closing VoTT. If you make changes when VoTT is s
 
 General instructions for annotation:
 
-The box must contain the entire person. 
-The box must not be unnecessarily large. Approximately half a head length above the head of the person, and a quarter of a head length below the feet of the person is recommended.
-In case of occlusion, the best approximation of where the person is should be taken into account.
-The size of the box should vary as smoothly as possible - this can be done in postprocessing once IDs have been reliably assigned.
-Only draw boxes/keep boxes which are present in the original annotation - we do not care about any other persons in the scene.
+- The box must contain the entire person. 
+- The box must not be unnecessarily large. Approximately half a head length above the head of the person, and a quarter of a -head length below the feet of the person is recommended.
+- In case of occlusion, the best approximation of where the person is should be taken into account.
+- The size of the box should vary as smoothly as possible - this can be done in postprocessing once IDs have been reliably assigned.
+- Only draw boxes/keep boxes which are present in the original annotation - we do not care about any other persons in the scene.
 
