@@ -4,6 +4,9 @@ import numpy as np
 import optparse
 import os
 import time
+import pdb
+from glob import glob
+from multiprocessing import Pool
 
 
 def check_color(crossed):
@@ -19,26 +22,35 @@ def create_rect(box):
     return x1, y1, x2, y2
 
 
+def get_params(frame_data):
+    boxes = []
+    ids = []
+    crossed = []
+    for f in frame_data:
+        if 'matchIds' in f and 'crossed' in f:
+            if 'box' in f:
+                boxes.append(f['box'])
+            else:
+                continue
+            #     boxes.append(f)
+            ids.append(f['matchIds'])
+            crossed.append(f['crossed'])
+
+    return boxes, ids, crossed
+
+
 def create_writer(capture):
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     height = int(capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
     width = int(capture.get(cv2.CAP_PROP_FRAME_WIDTH))
     frame_count = int(capture.get(cv2.CAP_PROP_FPS))
 
-    writer = cv2.VideoWriter('output_test.mp4',
+    writer = cv2.VideoWriter('ANN_hanh1.mp4',
                              fourcc,
                              2,
                              (width, height), isColor=True)
 
     return writer
-
-
-def get_params(frame_data):
-    boxes = [f['box'] for f in frame_data]
-    ids = [f['matchIds'] for f in frame_data]
-    crossed = [f['crossed'] for f in frame_data]
-
-    return boxes, ids, crossed
 
 
 def parse_options():
@@ -60,11 +72,20 @@ def parse_options():
                       dest='mask',
                       action='store_true',
                       default=False)
-    options, remainder = parser.parse_args()
+    parser.add_option('-d', '--dump_images',
+                      dest='dump_images',
+                      action='store_true',
+                      default=False)
+    parser.add_option('-o', '--output_folder',
+                      dest='output_folder',
+                      default=None)
+    parser.add_option('-i', '--from_image',
+                      default='')
+    options, _ = parser.parse_args()
 
     # Check for errors.
-    if options.video_path is None: 
-        raise Exception('Undefined video')
+    if options.video_path is None and not options.from_image:
+        raise Exception('Undefined video or image path')
     if options.json_path is None:
         raise Exception('Undefined json_file')
 
@@ -73,7 +94,12 @@ def parse_options():
 
 def Main():
     options = parse_options()
-
+    if options.dump_images:
+        os.makedirs(options.output_folder, exist_ok=True)
+    # if options.dump_images:
+    #     pool = Pool(20)
+    if options.from_image:
+        img_list = sorted(glob(os.path.join(options.from_image, 'imgs','*')), key=lambda x:int(os.path.basename(x)[:-4]))
     # Open VideoCapture.
     cap = cv2.VideoCapture(options.video_path)
 
@@ -85,27 +111,45 @@ def Main():
         writer = create_writer(cap)
 
     font = cv2.FONT_HERSHEY_SIMPLEX
-    frame_no = 1
+    if options.from_image:
+        frame_no = 0
+    else:
+        frame_no = 1
     while True:
-
+        if options.from_image and frame_no >= len(img_list):
+            break
         wait_key = 25
-        flag, img = cap.read()
+        if options.from_image:
+            img = cv2.imread(img_list[frame_no])
+            flag = True
+        else:
+            flag, img = cap.read()
 
         if img is None:
           break
-
+        if options.dump_images:
+            # pool.apply_async(cv2.imwrite, (os.path.join('redumped_images_12fps', 'ANN_hanh2_12fps_images', str(frame_no)+'.png'), img))
+            cv2.imwrite(os.path.join(options.output_folder, str(frame_no-1)+'.png'), img)
         # Create black image.
         black_img = np.zeros(img.shape, dtype=np.uint8)
 
         if frame_no % 120 == 0:
-            print('Processed {0} frames'.format(frame_no))
+            # print('Processed {0} frames'.format(frame_no))
+            pass
 
-        if frame_no % 6 != 0:
-            frame_no += 1
-            continue
-
-        key = str(int(frame_no / 6 + 1))
-
+        if not options.from_image:
+            key = str(int(frame_no / 6 + 1))
+            # key = str(frame_no-1)
+            # if frame_no % 6 != 0:
+            #     frame_no += 1
+            #     continue
+        else:
+            # if int(os.path.basename(img_list[frame_no])[:-4]) % 6 != 0:
+            #     frame_no += 1
+            #     continue
+            key = str(int(os.path.basename(img_list[frame_no])[:-4])+2)
+            # key = frame_no
+            # frame_no += 1
         boxes = data.get(key)
 
         if boxes == None:
@@ -128,7 +172,10 @@ def Main():
                             (0, 0, 0), 5, cv2.LINE_AA)
                 cv2.putText(img, ids[i], (x1, y1 - 10), font, 0.6,
                             crossed_color, 1, cv2.LINE_AA)
-        cv2.putText(img, str(frame_no), (200,200), font, 5, (0,0,1), 5)
+        if options.from_image:
+            cv2.putText(img, os.path.basename(img_list[frame_no])[:-4], (200,200), font, 5, (0,0,1), 5)
+        else:
+            cv2.putText(img, str(frame_no), (200,200), font, 5, (0,0,1), 5)
 
         if options.write:
             if options.mask:
@@ -151,6 +198,9 @@ def Main():
 
         frame_no += 1
 
+    if options.dump_images:
+        pool.close()
+        pool.join()
     cap.release()
     if options.write:
         writer.release()
