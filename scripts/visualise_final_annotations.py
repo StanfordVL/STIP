@@ -20,6 +20,12 @@ def create_rect(box):
 
     return x1, y1, x2, y2
 
+def get_params(frame_data):
+    boxes = [f['box'] for f in frame_data]
+    ids = [f['matchIds'] for f in frame_data]
+    crossed = [f['crossed'] for f in frame_data]
+
+    return boxes, ids, crossed
 
 def get_params(frame_data):
     boxes = []
@@ -96,7 +102,11 @@ def Main():
 
     while True:
         wait_key = 25
-        flag, img = cap.read()
+        if options.from_image:
+            img = cv2.imread(img_list[frame_no])
+            flag = True
+        else:
+            flag, img = cap.read()
 
         if img is None:
             break
@@ -151,6 +161,9 @@ def Main():
             break
         frame_no += 1
 
+    if options.dump_images:
+        pool.close()
+        pool.join()
     cap.release()
     if options.write:
         writer.release()
