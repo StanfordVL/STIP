@@ -115,6 +115,7 @@ def clean_tracking_results(mot_sequence_folder, dataset_root_folder):
                     new[1] = tp_matches[new[1]]
                     processed_results.append(new)
                 else:
+                    # Drop all tracks that do not have overlap with GT frames
                     unannotated_list.append(new[1])
         if not processed_results:
             print(f"Could not find any matches for {seq_name}"
@@ -124,6 +125,8 @@ def clean_tracking_results(mot_sequence_folder, dataset_root_folder):
             processed_results = np.vstack(processed_results)
 
         last_gt_frame = -1
+        # put in annotation format
+        # add in crossed label from previous GT of same ID
         for frame in range(latest_frame):
             if frame in annotated_frames:
                 new_anno['frames'][str(frame)] = old_anno['frames'][str(frame)]
