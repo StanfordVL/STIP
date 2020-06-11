@@ -32,7 +32,7 @@ Please verify that the output processed_interpolations_new* is present in each f
 Dependencies:
 
 For the above scripts to all work, you will need access to:
-1. JRMOT tracker, which can be found internally in StanfordVL/depth_tracking on github, or ```/cvgl2/u/ashenoi/depth_tracking```.
+1. JRMOT tracker, which can be found internally in StanfordVL/depth_tracking on github, or ```/cvgl2/u/ashenoi/depth_tracking``` (please use the KITTI_ped branch).
 2. Data in raw form from TRI ```/vision/group/STIP/raw_data```
 3. Annotations in raw form from TRI, mapped to the final names ```/vision/group/STIP/annotations
 4. Instance segmentation results at 20fps for the segments of interest (and after dumping box results using Bingbin's script data_proc.py) ```/vision/group/STIP/instances_20fps```
